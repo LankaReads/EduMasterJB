@@ -10,9 +10,10 @@ const postRoutes = require("./routes/postRoutes");
 const contactRoute = require("./routes/contactRoutes");
 const researchRouter = require("./routes/researchRouter");
 const projectRouter = require("./routes/projectRouter");
+const https = require("https");
+const fs = require("fs");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
@@ -45,6 +46,11 @@ app.use(express.json());
 app.use("/api/blogs", blogRoutes);
 app.use("/api/posts", postRoutes); // Updated route path to '/api/posts'
 
+const sslOptions = {
+  key: fs.readFileSync("./key.pem"),
+  cert: fs.readFileSync("./cert.pem"),
+};
+
 // Use the contact route
 app.use("/api/contact", contactRoute);
 
@@ -72,6 +78,13 @@ app.use((err, req, res, next) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is now running on port ${PORT}`);
+//app.listen(PORT, () => {
+//console.log(`Server is now running on port ${PORT}`);
+//});
+
+const server = https.createServer(sslOptions, app);
+
+const PORT = process.env.PORT || 443;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`HTTPS Server running on port ${PORT}`);
 });
